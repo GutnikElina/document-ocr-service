@@ -1,1 +1,0 @@
-# document-ocr-service
