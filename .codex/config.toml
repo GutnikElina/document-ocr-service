@@ -1,0 +1,11 @@
+# Safe project defaults.
+# Codex loads this file only after the repository is trusted.
+
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+
+# Keep dependency downloads and arbitrary network calls behind explicit approval.
+
+[sandbox_workspace_write]
+network_access = false
