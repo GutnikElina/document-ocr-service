@@ -1,0 +1,20 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.settings/
+*.iml
+.classpath
+.project
+.factorypath
+
+# Local
+.env
+.java-version
+
+# Build
+**/target/
+**/generated/
