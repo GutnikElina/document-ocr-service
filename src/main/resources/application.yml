@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: logistics-document-ocr-service
+
+storage:
+  minio:
+    read-timeout: 10s
+    write-timeout: 10s
+    connect-timeout: 2s
+    bucket: transport-documents
+    access-key: ${MINIO_ACCESS_KEY:username}
+    secret-key: ${MINIO_SECRET_KEY:password}
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
