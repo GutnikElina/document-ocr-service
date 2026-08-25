@@ -1,13 +1,36 @@
 spring:
   application:
     name: logistics-document-ocr-service
+  ai:
+    model:
+      chat: ollama
+    ollama:
+      chat:
+        model: llama3.1:8b
+        keep-alive: 10m
+        temperature: 0
+        num-ctx: 8192
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 52MB
+      file-size-threshold: 0B
 
 storage:
   minio:
     read-timeout: 10s
     write-timeout: 10s
     connect-timeout: 2s
+    access-key: username
+    secret-key: password
     bucket: transport-documents
-    access-key: ${MINIO_ACCESS_KEY:username}
-    secret-key: ${MINIO_SECRET_KEY:password}
-    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    endpoint: http://localhost:9000
+
+document:
+  upload:
+    max-file-size: 52428800
+    staging-cleanup-timeout: 10s
