@@ -6,7 +6,7 @@ spring:
       chat: ollama
     ollama:
       chat:
-        model: llama3.1:8b
+        model: gpt-oss:20b
         keep-alive: 10m
         temperature: 0
         num-ctx: 8192
@@ -17,8 +17,9 @@ spring:
     multipart:
       enabled: true
       max-file-size: 50MB
-      max-request-size: 52MB
+      max-request-size: 51MB
       file-size-threshold: 0B
+      location: /var/lib/logistics-ocr/staging
 
 storage:
   minio:
@@ -33,4 +34,4 @@ storage:
 document:
   upload:
     max-file-size: 52428800
-    staging-cleanup-timeout: 10s
+    staging-directory: /var/lib/logistics-ocr/staging

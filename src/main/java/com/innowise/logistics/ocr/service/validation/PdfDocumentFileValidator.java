@@ -11,6 +11,7 @@ import org.apache.tika.Tika;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 @RequiredArgsConstructor
 public class PdfDocumentFileValidator implements DocumentFileValidator {
@@ -33,8 +34,8 @@ public class PdfDocumentFileValidator implements DocumentFileValidator {
                 "Uploaded file exceeds maximum size of " + maxFileSize + " bytes"
             );
         }
-        try {
-            String detectedType = tika.detect(file.getInputStream());
+        try (InputStream is = file.getInputStream()) {
+            String detectedType = tika.detect(is);
             if (!PDF_MEDIA_TYPE.equals(detectedType)) {
                 throw new InvalidDocumentException(
                     "Only PDF documents are supported. Detected: " + detectedType

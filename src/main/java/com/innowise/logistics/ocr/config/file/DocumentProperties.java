@@ -7,10 +7,9 @@ package com.innowise.logistics.ocr.config.file;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.time.Duration;
-
 @ConfigurationProperties(prefix = "document.upload")
 public record DocumentProperties(
     long maxFileSize,
-    Duration stagingCleanupTimeout
-) { }
+    String stagingDirectory
+) {
+}

@@ -5,6 +5,7 @@
 
 package com.innowise.logistics.ocr.service.staging;
 
+import com.innowise.logistics.ocr.config.file.DocumentProperties;
 import com.innowise.logistics.ocr.exception.InvalidDocumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,10 +18,25 @@ import java.nio.file.Path;
 @Slf4j
 @Component
 public class TemporaryDocumentFileStaging implements DocumentFileStaging {
+    private final Path stagingDirectory;
+
+    public TemporaryDocumentFileStaging(DocumentProperties documentProperties) {
+        this.stagingDirectory = Path.of(documentProperties.stagingDirectory());
+        try {
+            Files.createDirectories(this.stagingDirectory);
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                "Unable to initialize document staging directory",
+                e
+            );
+        }
+    }
+
     @Override
     public Path stage(MultipartFile file) {
         try {
             Path tempFile = Files.createTempFile(
+                stagingDirectory,
                 "logistics-document-",
                 ".pdf"
             );
