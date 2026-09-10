@@ -27,9 +27,11 @@ class OllamaStartupVerifierTest {
         OllamaApi ollamaApi = mock(OllamaApi.class);
         OllamaChatProperties chatProperties = new OllamaChatProperties();
         chatProperties.setModel(REQUIRED_MODEL);
+        OllamaApi.ShowModelResponse showModelResponse =
+            mock(OllamaApi.ShowModelResponse.class);
         when(ollamaApi.showModel(
             new OllamaApi.ShowModelRequest(REQUIRED_MODEL)
-        )).thenReturn(mock(OllamaApi.ShowModelResponse.class));
+        )).thenReturn(showModelResponse);
         OllamaStartupVerifier verifier =
             new OllamaStartupVerifier(ollamaApi, chatProperties);
 
@@ -51,9 +53,11 @@ class OllamaStartupVerifierTest {
         )).thenThrow(cause);
         OllamaStartupVerifier verifier =
             new OllamaStartupVerifier(ollamaApi, chatProperties);
+        DefaultApplicationArguments arguments =
+            new DefaultApplicationArguments();
 
         // Act & Assert
-        assertThatThrownBy(() -> verifier.run(new DefaultApplicationArguments()))
+        assertThatThrownBy(() -> verifier.run(arguments))
             .isInstanceOf(OllamaStartupException.class)
             .hasMessage(
                 "Unable to verify required Ollama model '%s'"
@@ -63,14 +67,32 @@ class OllamaStartupVerifierTest {
     }
 
     @Test
+    void shouldFailStartupWhenRequiredModelIsNotConfigured() {
+        // Arrange
+        OllamaApi ollamaApi = mock(OllamaApi.class);
+        OllamaChatProperties chatProperties = new OllamaChatProperties();
+        OllamaStartupVerifier verifier =
+            new OllamaStartupVerifier(ollamaApi, chatProperties);
+        DefaultApplicationArguments arguments =
+            new DefaultApplicationArguments();
+
+        // Act & Assert
+        assertThatThrownBy(() -> verifier.run(arguments))
+            .isInstanceOf(OllamaStartupException.class)
+            .hasMessage("Required Ollama model name is not configured");
+    }
+
+    @Test
     void shouldVerifyConfiguredModel() {
         // Arrange
         OllamaApi ollamaApi = mock(OllamaApi.class);
         OllamaChatProperties chatProperties = new OllamaChatProperties();
         chatProperties.setModel(REQUIRED_MODEL);
+        OllamaApi.ShowModelResponse showModelResponse =
+            mock(OllamaApi.ShowModelResponse.class);
         when(ollamaApi.showModel(
             new OllamaApi.ShowModelRequest(REQUIRED_MODEL)
-        )).thenReturn(mock(OllamaApi.ShowModelResponse.class));
+        )).thenReturn(showModelResponse);
         OllamaStartupVerifier verifier =
             new OllamaStartupVerifier(ollamaApi, chatProperties);
 

@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class PdfDocumentFileValidator implements DocumentFileValidator {
@@ -23,24 +24,33 @@ public class PdfDocumentFileValidator implements DocumentFileValidator {
 
     @Override
     public void validate(MultipartFile file) {
-        if (file == null) {
-            throw new InvalidDocumentException("File is required");
-        }
-        if (file.isEmpty()) {
-            throw new InvalidDocumentException("Uploaded file is empty");
-        }
-        if (file.getSize() > maxFileSize) {
-            throw new InvalidDocumentException(
+        Optional.ofNullable(file)
+            .orElseThrow(() -> new InvalidDocumentException("File is required"));
+        Optional.of(file)
+            .filter(upload -> !upload.isEmpty())
+            .orElseThrow(() -> new InvalidDocumentException(
+                "Uploaded file is empty"
+            ));
+        Optional.of(file)
+            .filter(upload -> upload.getSize() <= maxFileSize)
+            .orElseThrow(() -> new InvalidDocumentException(
                 "Uploaded file exceeds maximum size of " + maxFileSize + " bytes"
-            );
-        }
+            ));
+        validatePdfMediaType(file);
+    }
+
+    private void validatePdfMediaType(MultipartFile file) {
+        String detectedType = detectMediaType(file);
+        Optional.ofNullable(detectedType)
+            .filter(PDF_MEDIA_TYPE::equals)
+            .orElseThrow(() -> new InvalidDocumentException(
+                "Only PDF documents are supported. Detected: " + detectedType
+            ));
+    }
+
+    private String detectMediaType(MultipartFile file) {
         try (InputStream is = file.getInputStream()) {
-            String detectedType = tika.detect(is);
-            if (!PDF_MEDIA_TYPE.equals(detectedType)) {
-                throw new InvalidDocumentException(
-                    "Only PDF documents are supported. Detected: " + detectedType
-                );
-            }
+            return tika.detect(is);
         } catch (IOException e) {
             throw new InvalidDocumentException(
                 "Unable to inspect uploaded file",

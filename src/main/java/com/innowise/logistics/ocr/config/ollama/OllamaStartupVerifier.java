@@ -15,7 +15,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
-import java.util.Objects;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -25,15 +25,26 @@ public final class OllamaStartupVerifier implements ApplicationRunner {
 
     @Override
     public void run(@NonNull ApplicationArguments args) {
-        String requiredModel = Objects.requireNonNull(chatProperties.getModel());
+        Optional.ofNullable(chatProperties.getModel())
+            .ifPresentOrElse(
+                this::verifyModel,
+                () -> {
+                    throw new OllamaStartupException(
+                        "Required Ollama model name is not configured"
+                    );
+                }
+            );
+    }
+
+    private void verifyModel(String model) {
         try {
             ollamaApi.showModel(
-                new OllamaApi.ShowModelRequest(requiredModel)
+                new OllamaApi.ShowModelRequest(model)
             );
         } catch (RestClientException cause) {
             throw new OllamaStartupException(
                 "Unable to verify required Ollama model '%s'"
-                    .formatted(requiredModel),
+                    .formatted(model),
                 cause
             );
         }

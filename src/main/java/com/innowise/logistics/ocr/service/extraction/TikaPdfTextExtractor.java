@@ -11,6 +11,7 @@ import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -34,13 +35,8 @@ public class TikaPdfTextExtractor implements TextExtractor {
     }
 
     private String normalize(String text) {
-        if (text == null) {
-            return "";
-        }
-
-        return text
-            .replace("\r\n", "\n")
-            .replace('\r', '\n')
-            .trim();
+        return Optional.ofNullable(text)
+            .map(value -> value.replaceAll("\r\n?", "\n").trim())
+            .orElse("");
     }
 }

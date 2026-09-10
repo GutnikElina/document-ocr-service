@@ -15,30 +15,29 @@ import org.springframework.stereotype.Component;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 @RequiredArgsConstructor
 public class TesseractPdfTextExtractor implements TextExtractor {
+    private static final int RENDER_DPI = 200;
+
     private final ITesseract tesseract;
 
     @Override
     public ExtractedText extract(Path document) {
         try (PDDocument pdf = Loader.loadPDF(document.toFile())) {
-            PDFRenderer pdfRenderer = new PDFRenderer(pdf);
-            StringBuilder result = new StringBuilder();
-            for (int page = 0; page < pdf.getNumberOfPages(); page++) {
-                BufferedImage image =
-                    pdfRenderer.renderImageWithDPI(page, 200);
-                String pageText = tesseract.doOCR(image);
-                if (pageText != null && !pageText.isBlank()) {
-                    result
-                        .append(pageText.trim())
-                        .append(System.lineSeparator());
-                }
-                image.flush();
-            }
+            var pdfRenderer = new PDFRenderer(pdf);
+            var text = IntStream.range(0, pdf.getNumberOfPages())
+                .mapToObj(page -> extractPageText(pdfRenderer, page))
+                .filter(pageText -> !pageText.isBlank())
+                .collect(Collectors.joining(System.lineSeparator()));
+
             return new ExtractedText(
-                result.toString().trim(),
+                text,
                 ExtractionMethod.TESSERACT
             );
         } catch (Exception e) {
@@ -46,6 +45,25 @@ public class TesseractPdfTextExtractor implements TextExtractor {
                 "Tesseract failed to extract text from " + document,
                 e
             );
+        }
+    }
+
+    private String extractPageText(PDFRenderer renderer, int page) {
+        BufferedImage image = null;
+        try {
+            image = renderer.renderImageWithDPI(page, RENDER_DPI);
+            return Optional.ofNullable(tesseract.doOCR(image))
+                .map(String::trim)
+                .orElse("");
+        } catch (Exception cause) {
+            throw new TextExtractionException(
+                "Failed to process OCR for page " + page,
+                cause
+            );
+        } finally {
+            if (Objects.nonNull(image)) {
+                image.flush();
+            }
         }
     }
 }
