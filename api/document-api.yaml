@@ -1,0 +1,82 @@
+openapi: 3.0.0
+
+info:
+  title: Logistics Document API
+  version: 1.0.0
+  description: |
+    API for uploading logistics documents for further processing.
+
+servers:
+  - url: https://api.logistics.com
+
+tags:
+  - name: Documents
+
+paths:
+  /api/v1/documents/upload:
+    post:
+      summary: Upload a document
+      description: |
+        Uploads a document for further processing.
+        The request contains the order identifier and the presumed document type.
+        Supported document formats:
+        - PDF
+        - JPEG
+        - PNG
+        - TIFF
+        Maximum file size: 50 MiB.
+      operationId: upload
+      tags:
+        - Documents
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - orderId
+                - documentType
+                - file
+              properties:
+                orderId:
+                  type: string
+                  format: uuid
+                  description: Identifier of the order associated with the document.
+                documentType:
+                  type: string
+                  description: Presumed type of the uploaded document.
+                file:
+                  type: string
+                  format: binary
+                  description: |
+                    Document file.
+                    Supported formats: PDF, JPEG, PNG, TIFF.
+                    Maximum size: 50 MiB.
+      responses:
+        '202':
+          description: Document accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentUploadedResponse'
+
+components:
+  schemas:
+    DocumentUploadedResponse:
+      type: object
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier assigned to the uploaded document.
+          example: 01a0395e-05fe-713e-92b5-18f2a8a1ec88
+        status:
+          type: string
+          enum:
+            - ACCEPTED
+          description: Current processing status of the uploaded document.
+          example: ACCEPTED

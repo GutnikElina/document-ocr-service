@@ -52,5 +52,37 @@ services:
         mc anonymous set none "local/$${MINIO_BUCKET}"
         mc stat "local/$${MINIO_BUCKET}"
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - |
+        ollama pull llama3.1:8b
+        ollama list
+
 volumes:
   minio-data:
+  ollama-data:
